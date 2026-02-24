@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AI Quiz Solver Settings</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        max-width: 400px;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin: 10px 0;
+      }
+      button {
+        padding: 10px 15px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>⚙️ Extension Settings</h2>
+    <p>
+      Get a free API key from
+      <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a
+      >.
+    </p>
+
+    <label for="apiKey">Gemini API Key:</label>
+    <input type="password" id="apiKey" placeholder="AIzaSy..." />
+
+    <button id="saveBtn">Save Key</button>
+    <p id="status" style="color: green"></p>
+
+    <script src="options.js"></script>
+  </body>
+</html>

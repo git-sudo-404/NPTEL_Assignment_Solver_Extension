@@ -4,8 +4,10 @@
   "version": "1.0",
   "description": "Reads MCQs and auto-fills answers.",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
+  "options_page": "options.html",
   "background": {
     "service_worker": "background.js"
   },
