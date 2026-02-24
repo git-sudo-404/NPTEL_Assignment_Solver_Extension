@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "NPTEL Quiz Solver",
+  "version": "1.0",
+  "description": "Reads MCQs and auto-fills answers.",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://onlinecourses.nptel.ac.in/*"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ]
+}
