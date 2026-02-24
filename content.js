@@ -2,7 +2,7 @@
 const button = document.createElement("button");
 button.innerText = "🤖 Solve Quiz";
 button.style.position = "fixed";
-button.style.bottom = "80px"; // Moved up slightly so it doesn't overlap NPTEL's scroll button
+button.style.bottom = "80px";
 button.style.right = "20px";
 button.style.zIndex = "9999";
 button.style.padding = "15px 25px";
@@ -21,25 +21,19 @@ document.body.appendChild(button);
 button.addEventListener("click", () => {
   console.log("🔍 Scanning NPTEL page for questions...");
 
-  // Target NPTEL's specific question blocks
   const questionBlocks = document.querySelectorAll(".qt-mc-question");
-
   let quizData = [];
 
   questionBlocks.forEach((block, index) => {
-    // Grab the question text using NPTEL's class
     const qTextElement = block.querySelector(".qt-question");
     const questionText = qTextElement
       ? qTextElement.innerText.trim()
       : "Unknown Question";
 
-    // Grab the multiple choice options using NPTEL's classes
-    // We target the label inside the choice block to get the clean text
     const optionElements = block.querySelectorAll(".gcb-mcq-choice label");
     let options = [];
     optionElements.forEach((opt) => options.push(opt.innerText.trim()));
 
-    // Store it in a clean JSON format
     if (questionText !== "Unknown Question") {
       quizData.push({
         id: `q_${index}`,
@@ -49,9 +43,69 @@ button.addEventListener("click", () => {
     }
   });
 
-  // Print the final payload to the console
-  console.log("✅ Extracted Payload:", JSON.stringify(quizData, null, 2));
-  alert(
-    `Successfully extracted ${quizData.length} questions! Open your browser's Console (Inspect -> Console) to see the JSON data.`,
+  // Change button state to show it is thinking
+  button.innerText = "⏳ Thinking...";
+  button.style.backgroundColor = "#eab308"; // Yellow
+
+  // Send the completely built array to the background script
+  chrome.runtime.sendMessage(
+    { action: "solve_quiz", data: quizData },
+    (response) => {
+      if (response && response.success) {
+        console.log("🧠 LLM Answers Received:", response.answers);
+
+        let clickCount = 0;
+
+        // --- THE GHOST HANDS (DOM Manipulation) ---
+        // Loop through the answers provided by the LLM
+        for (const [qId, answerText] of Object.entries(response.answers)) {
+          // Extract the index number from the ID (e.g., "q_0" -> 0)
+          const index = parseInt(qId.split("_")[1]);
+          const block = questionBlocks[index];
+
+          if (!block) continue; // Safety check
+
+          // Look at all the choices for this specific question
+          const choices = block.querySelectorAll(".gcb-mcq-choice");
+          choices.forEach((choice) => {
+            const label = choice.querySelector("label");
+
+            // If the text on the screen matches the AI's answer
+            if (label && label.innerText.trim() === answerText.trim()) {
+              const radioInput = choice.querySelector("input[type='radio']");
+
+              if (radioInput) {
+                radioInput.click(); // Physically click the button!
+
+                // Optional: Highlight the choice in light green to show it was AI-selected
+                choice.style.backgroundColor = "#dcfce7";
+                choice.style.borderRadius = "4px";
+
+                clickCount++;
+              }
+            }
+          });
+        }
+
+        // Reset button to show success
+        button.innerText = `✅ Solved ${clickCount}!`;
+        button.style.backgroundColor = "#16a34a"; // Green
+
+        // Reset button text after 3 seconds
+        setTimeout(() => {
+          button.innerText = "🤖 Solve Quiz";
+          button.style.backgroundColor = "#2563eb"; // Back to Blue
+        }, 3000);
+      } else {
+        console.error(
+          "❌ LLM Error:",
+          response ? response.error : "Failed to connect to background script.",
+        );
+        alert("Something went wrong asking the LLM.");
+
+        button.innerText = "🤖 Solve Quiz";
+        button.style.backgroundColor = "#2563eb";
+      }
+    },
   );
 });
